@@ -8,6 +8,8 @@ function App() {
   const [hasProvider, setHasProvider] = useState<boolean | null>(null);
   const initialState = { accounts: [], balance: "", chainId: "" };
   const [wallet, setWallet] = useState(initialState);
+  const [toAddress, setToAddress] = useState("");
+  const [txResult, setTxResult] = useState("");
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState(false);
@@ -58,7 +60,6 @@ function App() {
     const chainId = await window.ethereum!.request({
       method: "eth_chainId",
     });
-    console.log({ balance });
     setWallet({ accounts, balance, chainId });
   };
 
@@ -77,6 +78,25 @@ function App() {
         setErrorMessage(err.message);
       });
     setIsConnecting(false);
+  };
+
+  const handleSend = async () => {
+    window.ethereum
+      .request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: wallet.accounts[0],
+            to: toAddress,
+            value: "0x38D7EA4C68000", //0.001eth
+            gasLimit: "0x5208", //21000
+            maxPriorityFeePerGas: "0x3b9aca00", //1gwei
+            maxFeePerGas: "0x77359400", //2gwei
+          },
+        ],
+      })
+      .then((txHash: string) => setTxResult(txHash))
+      .catch((error: Error) => setTxResult(error.message));
   };
 
   const disableConnect = Boolean(wallet) && isConnecting;
@@ -99,6 +119,21 @@ function App() {
           <br />
           <span>Numeric ChainId: {formatChainAsNum(wallet.chainId)}</span>
           <br />
+          <label>Address</label>
+          {txResult === "" ? (
+            <>
+              <input
+                type="text"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setToAddress(e.target.value)
+                }
+              />
+              <br />
+              <button onClick={handleSend}>Send</button>
+            </>
+          ) : (
+            <p>{txResult}</p>
+          )}
         </p>
       )}
       {error && (
