@@ -32,7 +32,7 @@ function App() {
       const provider = await detectEthereumProvider({ silent: true });
       setHasProvider(Boolean(provider));
 
-      if (provider) {
+      if (hasProvider) {
         const accounts = await window.ethereum.request({
           method: "eth_accounts",
         });
